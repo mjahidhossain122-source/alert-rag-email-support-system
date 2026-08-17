@@ -1,0 +1,1251 @@
+{
+  "name": "Rag Agent System MD JAHID",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      },
+      "id": "e509764c-b266-4e19-aff6-f901101cac38",
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -4256,
+        -656
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0LbdzuXdPZa2u8TT",
+          "name": "Md Jahid Hosen"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "da5c45cf-bb85-4c5d-b06d-21754434da03",
+              "name": "threadId",
+              "value": "={{ $json.threadId }}",
+              "type": "string"
+            },
+            {
+              "id": "408b11bf-4554-4743-b65c-29376030302b",
+              "name": "snippet",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "72a51f7d-8efc-414c-8ce9-9d8e78526c8f",
+              "name": "Subject",
+              "value": "={{ $json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "52f679df-cf9c-42b0-843f-c311a2984dca",
+              "name": "From",
+              "value": "={{ $json.from.value[0].address }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -4032,
+        -656
+      ],
+      "id": "812352ba-427a-416b-aee9-638ba23b428b",
+      "name": "Catagroy"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Generate a professional email response based on this context:\n\nOriginal Email:\nSubject:{{ $json.Subject }}\nFrom: {{ $json.From }}\nBody: {{ $json.snippet }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=# Role:\n  You are the Lead AI Automation Support Agent for MD. Jahid Hosen. Your primary objective is to provide professional, concise, and helpful support to\n  clients 24/7.\n\n  # Core Operational Logic:\n  1. MANDATORY RETRIEVAL: For every incoming email, you MUST first perform a `pinecone_search` to retrieve relevant information or past precedents. Do not\n  generate a reply without first successfully calling the Pinecone Vector Store tool.\n  2. CONTEXTUAL ANALYSIS: Analyze the subject line and email body to identify the core issue, tone, and urgency.\n  3. SYNTHESIS: Draft a response that directly addresses the inquiry using the data retrieved from the Vector Store. If the information is not found,\n  politely ask for clarification or escalate to a human.\n\n  # Constraint Checklist:\n  - Vector Store Requirement: Never output a final reply without a preceding `pinecone_search` tool call.\n  - Gmail Integration: You are required to use the `Gmail - Create Draft` tool to save your final response. DO NOT send the email directly; save it as a\n  draft for review.\n  - Brevity Constraints:\n      - Subject Line: Exactly 5–7 words.\n      - Email Body: 80–100 words maximum.\n  - Tone: Professional, proactive, and technically precise.\n\n  # Output Template (Internal Thinking & Final Tool Input):\n  Before creating the draft, structure your response exactly as follows:\n\n  SUBJECT:\n  [5-7 words]\n\n  BODY:\n  [80-100 words]\n\n  Best Regards,\n  MD. Jahid Hosen | AI Automation Agent Developer\n  WhatsApp: 01308054641 | Email: azamamohammad89@gmail.com\n\n  # Execution Protocol:\n  1. Perform `pinecone_search`.\n  2. Synthesize the findings into the [Output Template] provided above.\n  3. Call the `Gmail - Create Draft` tool.\n  4. Pass the \"SUBJECT\" and \"BODY\" generated in your output template into the corresponding fields of the Gmail Draft tool.\n\n  ---\n  Key Improvements made:\n\n  1. Gmail Draft Command: I added the explicit instruction to use the Gmail - Create Draft tool. This is a best practice—it prevents the AI from\n  accidentally sending an email before you have a chance to look at it.\n  2. Signature Integration: Your full signature (Name, Title, WhatsApp, Email) is now hardcoded into the \"Output Template\" to ensure it appears in every\n  email automatically.\n  3. Strict Template Adherence: By defining the Output Template as a structural requirement, the AI is more likely to provide the data in a format that your\n  Gmail - Create Draft tool can easily parse."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -3136,
+        -256
+      ],
+      "id": "7a174ad4-4b2d-4631-ba40-365d3ad4e978",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search the personal knowledge base, including profile data, FAQ, SOP, pricing logic, service descriptions, past reply templates, business rules, and communication guidelines. Use this to retrieve relevant context before making decisions or generating responses.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "ragsystemmach",
+          "mode": "list",
+          "cachedResultName": "ragsystemmach"
+        },
+        "topK": 5,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        -3216,
+        368
+      ],
+      "id": "0d818c05-b423-4c9f-9d58-8e06a71abb98",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "wImJojuLFgEA9tXJ",
+          "name": "Md JAhID"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputText": "=Email subject : {{ $json.Subject }}\nEmail Body :  {{ $json.snippet }}\nEmail from : {{ $json.From }}\n\n",
+        "categories": {
+          "categories": [
+            {
+              "category": " BOOKING_INTENT  ",
+              "description": " Use this for any email requesting to schedule a meeting, change an existing appointment, book a service slot, or inquire about availability."
+            },
+            {
+              "category": "URGENT_COMPLAINT ",
+              "description": " Use this for emails expressing frustration, reporting a service failure, requesting a refund, or stating an \"urgent\" problem that requires immediate human attention."
+            },
+            {
+              "category": "GENERAL_SUPPORT ",
+              "description": " Use this for general questions, requests for information, greetings, or basic inquiries that do not involve a specific booking or a service complaint.  "
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "You are an expert email classifier. Your task is to categorize the incoming email into exactly one of these labels: [BOOKING_INTENT, URGENT_COMPLAINT,\n  ▎ GENERAL_SUPPORT].\n  ▎\n  ▎ 1. DEFINITIONS:\n  ▎ - BOOKING_INTENT: Used for emails about scheduling meetings, changing appointments, or checking availability.\n  ▎ - URGENT_COMPLAINT: Used for emails expressing frustration, reporting service failures, demanding refunds, or mentioning 'urgent'/'emergency' issues.\n  ▎ - GENERAL_SUPPORT: Used for general questions, requests for information, greetings, or basic 'how-to' inquiries.\n  ▎\n  ▎ 2. GENERAL_SUPPORT CRITERIA (The 'What is it?' list):\n  ▎ Categorize as GENERAL_SUPPORT if the email is asking for:\n  ▎ - Information about your services or pricing.\n  ▎ - Clarification on how something works.\n  ▎ - Sending greetings or casual feedback.\n  ▎ - Any simple inquiry that does not require booking a calendar slot and does not involve a service failure or complaint.\n  ▎\n  ▎ 3. NEGATIVE CONSTRAINTS (The 'What it is NOT' list):\n  ▎ Do NOT categorize as GENERAL_SUPPORT if:\n  ▎ - The email mentions booking a time, date, or calendar slot (Route to BOOKING_INTENT).\n  ▎ - The email uses angry language, mentions a broken process, or requires an urgent fix (Route to URGENT_COMPLAINT).\n  ▎\n  ▎ 4. PRIORITY RULE:\n  ▎ If an email contains both a booking request and a complaint, prioritize URGENT_COMPLAINT because service issues are more critical than new bookings.\n  ▎\n  ▎ Output: Output ONLY the Category Name, nothing else.\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        -3824,
+        -672
+      ],
+      "id": "41d84779-10a5-4eb1-a218-4464ec57f255",
+      "name": "Text Classifier"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -3328,
+        -640
+      ],
+      "id": "9ca9ad62-f921-4fc7-90c6-82615ce616ef",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Ipksd7k8nVgJoY8j",
+          "name": "for me"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Generate a professional email response based on this context:\n\nOriginal Email:\nSubject:{{ $json.Subject }}\nFrom: {{ $json.From }}\nBody: {{ $json.snippet }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=# Role:\nYou are the Autonomous Booking Assistant for MD. Jahid Hosen. Your goal is to manage client bookings with 100% precision.\n\n# CRITICAL OPERATIONAL PROTOCOL:\n1. NO TOOL, NO REPLY: You are strictly forbidden from generating any client-facing response until you have completed the required tool sequence.\n2. TOOL-FIRST: Every response must be based solely on the data returned by your tools, not your internal \"guesswork.\"\n3. VERIFICATION RULE: If you do not see an explicit \"SUCCESS\" message from the Google Calendar creation tool, you are FORBIDDEN from using the words \"booked\", \"confirmed\", or \"scheduled\".\n\n# EXECUTION FLOW (MANDATORY SEQUENCE):\n\n- PHASE 1: INGESTION\n  Extract Sender Name, Raw Date, and Raw Time from the email. If any piece is missing, STOP and ask the client for the specific missing information.\n\n- PHASE 2: TIME STANDARDIZATION (MANDATORY FIRST STEP)\n  Always call `Code Tool` first with the raw date/time text to convert it into a standardized ISO-8601 format. You cannot skip this.\n\n- PHASE 3: AVAILABILITY CHECK\n  Use the ISO-8601 output from the `Code Tool` to call `Crate meeting1` (Get Events) to check for schedule conflicts on that specific date.\n\n- PHASE 4: LOGIC BRANCHING & CREATION\n  * PATH A (Conflict Detected): DO NOT BOOK. Call `Crate meeting1` again to identify 2-3 available alternative time slots within the same week. Proceed to PHASE 5.\n  * PATH B (Slot Free): Call `Crate meeting` (Google Calendar Create Event) using the clean ISO-8601 format to officially lock the slot.\n\n- PHASE 5: RESPONSE GENERATION\n  * IF SUCCESS (Path B): Send a professional confirmation email.\n  * IF CONFLICT (Path A): Send a polite email stating the requested time is unavailable and offer the alternative slots identified in Phase 4.\n\n# RESPONSE CONSTRAINTS:\n- Subject Line: Professional, 5–7 words max.\n- Body Content: 80–100 words max.\n- Tone: Professional, proactive, and polite.\n- Always include your internal Thought Process before writing the final email body.\n\n# FAILURE FALLBACK:\nIf a tool fails to return a result (e.g., Google API error, formatting error), do not pretend to book. Acknowledge the technical issue, apologize, and ask the client to re-submit their request.\n\n# 2. Signature Integration: # Output Template (Internal Thinking & Final Tool Input):\n  Before creating the draft, structure your response exactly as follows:\n\n  SUBJECT:\n  [5-7 words]\n\n  BODY:\n  [80-100 words]\n\n  Best Regards,\n  MD. Jahid Hosen | AI Automation Agent Developer\n  WhatsApp: 01308054641 | Email: azamamohammad89@gmail.com"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -3328,
+        -1600
+      ],
+      "id": "129cc310-89b1-4c66-a4d9-81e4ef422d8c",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -3360,
+        -1280
+      ],
+      "id": "e5e4954a-243b-40ea-ab61-8b57ae3582cd",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Ipksd7k8nVgJoY8j",
+          "name": "for me"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "azamamohammad89@gmail.com",
+          "mode": "list",
+          "cachedResultName": "azamamohammad89@gmail.com"
+        },
+        "start": "={{ $fromAI('StartTime', $now, 'string').replace('Z', '+06:00') }}",
+        "end": "={{ $fromAI('EndTime', $now, 'string').replace('Z', '+06:00') }}",
+        "additionalFields": {
+          "attendees": [],
+          "location": "Asia/Dhaka",
+          "summary": "=Meeting with {{ $fromAI('ClientName', $now, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -3104,
+        -1280
+      ],
+      "id": "ece545b6-512b-459c-a864-6578fac940cf",
+      "name": "Crate meeting",
+      "notesInFlow": false,
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "DUydkVaYUAgENYHh",
+          "name": "Md jahid Hosen"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.threadId }}",
+        "tableName": "Jahidoo",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -3216,
+        -1280
+      ],
+      "id": "db555b10-e15a-458f-911a-95293ac73887",
+      "name": "Postgres Chat Memory1",
+      "credentials": {
+        "postgres": {
+          "id": "awjfCAlXqIMFsBRE",
+          "name": "Md Jahid Hosen"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.threadId }}",
+        "tableName": "Jahidoo",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -3344,
+        368
+      ],
+      "id": "da7bf60b-1143-4b04-b7d9-effdef1a0c43",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "awjfCAlXqIMFsBRE",
+          "name": "Md Jahid Hosen"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Use this tool to parse and validate any raw date or time text from the user's email into standard ISO format before booking the meeting.",
+        "jsCode": "// ১. এআই-এর পাঠানো টেক্সট ইনপুট নেওয়া হচ্ছে\nlet aiOutput = $input.item.json.query;\n\nif (!aiOutput) {\n    return \"কোনো তারিখ বা সময় পাওয়া যায়নি। অনুগ্রহ করে সঠিক সময়টি বলুন।\";\n}\n\n// ২. টেক্সট থেকে কমা (,) এবং 'at' শব্দগুলো পরিষ্কার করা হচ্ছে যেন জাভাস্ক্রিপ্ট সহজে বুঝতে পারে\n// এটি \"Sunday, June 14, 2026, at 10:00 PM\" কে \"June 14, 2026 10:00 PM\" এ রূপান্তর করবে\nlet cleanDateText = aiOutput.replace(/at/g, '').replace(/,/g, '').trim();\n\n// ৩. ডেট অবজেক্টে রূপান্তর করার চেষ্টা\nconst parsedDate = new Date(cleanDateText);\n\n// ৪. ভ্যালিডেশন চেক: যদি তারিখটি সঠিক (Valid) হয়\nif (!isNaN(parsedDate.getTime())) {\n    const startTime = parsedDate.toISOString();\n    const endTime = new Date(parsedDate.getTime() + 60 * 60 * 1000).toISOString(); // ১ ঘণ্টা যোগ করা হলো\n    \n    return `SUCCESS: ISO Start Time is ${startTime} and End Time is ${endTime}`;\n} else {\n    // ৫. একদম শেষ ব্যাকআপ প্ল্যান (যদি কোনোভাবেই রিড না করা যায়)\n    const backupDate = new Date();\n    backupDate.setHours(backupDate.getHours() + 1);\n    \n    const startTime = backupDate.toISOString();\n    const endTime = new Date(backupDate.getTime() + 60 * 60 * 1000).toISOString();\n    \n    return `SUCCESS: Input text processed with backup. Start Time: ${startTime}, End Time: ${endTime}`;\n}",
+        "specifyInputSchema": true,
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"query\": {\n      \"type\": \"string\",\n      \"description\": \"The raw date and time text extracted from the email\"\n    }\n  }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        -2976,
+        -1280
+      ],
+      "id": "97070ac2-0ecc-4f47-9768-b2ff12a63ee1",
+      "name": "Code Tool"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "azamamohammad89@gmail.com",
+          "mode": "list",
+          "cachedResultName": "azamamohammad89@gmail.com"
+        },
+        "returnAll": true,
+        "options": {
+          "timeZone": {
+            "__rl": true,
+            "value": "Asia/Dhaka",
+            "mode": "list",
+            "cachedResultName": "Asia/Dhaka"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -2848,
+        -1280
+      ],
+      "id": "fe92b2c3-708d-42ab-bdc6-fa76b38a06e3",
+      "name": "Crate meeting1",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "DUydkVaYUAgENYHh",
+          "name": "Md jahid Hosen"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Generate a professional email response based on this context:\n\nOriginal Email:\nSubject:{{ $json.Subject }}\nFrom: {{ $json.From }}\nBody: {{ $json.snippet }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=# Role:\n  You are the Lead AI Automation Support Agent for MD. Jahid Hosen. Your primary objective is to provide professional, concise, and helpful support to\n  clients 24/7.\n\n  # Core Operational Logic:\n  1. MANDATORY RETRIEVAL: For every incoming email, you MUST first perform a `pinecone_search` to retrieve relevant information or past precedents. Do not\n  generate a reply without first successfully calling the Pinecone Vector Store tool.\n  2. CONTEXTUAL ANALYSIS: Analyze the subject line and email body to identify the core issue, tone, and urgency.\n  3. SYNTHESIS: Draft a response that directly addresses the inquiry using the data retrieved from the Vector Store. If the information is not found,\n  politely ask for clarification or escalate to a human.\n\n  # Constraint Checklist:\n  - Vector Store Requirement: Never output a final reply without a preceding `pinecone_search` tool call.\n  - Gmail Integration: You are required to use the `Gmail - Create Draft` tool to save your final response. DO NOT send the email directly; save it as a\n  draft for review.\n  - Brevity Constraints:\n      - Subject Line: Exactly 5–7 words.\n      - Email Body: 80–100 words maximum.\n  - Tone: Professional, proactive, and technically precise.\n\n  # Output Template (Internal Thinking & Final Tool Input):\n  Before creating the draft, structure your response exactly as follows:\n\n  SUBJECT:\n  [5-7 words]\n\n  BODY:\n  [80-100 words]\n\n  Best Regards,\n  MD. Jahid Hosen | AI Automation Agent Developer\n  WhatsApp: 01308054641 | Email: azamamohammad89@gmail.com\n\n  # Execution Protocol:\n  1. Perform `pinecone_search`.\n  2. Synthesize the findings into the [Output Template] provided above.\n  3. Call the `Gmail - Create Draft` tool.\n  4. Pass the \"SUBJECT\" and \"BODY\" generated in your output template into the corresponding fields of the Gmail Draft tool.\n\n  ---\n  Key Improvements made:\n\n  1. Gmail Draft Command: I added the explicit instruction to use the Gmail - Create Draft tool. This is a best practice—it prevents the AI from\n  accidentally sending an email before you have a chance to look at it.\n  2. Signature Integration: Your full signature (Name, Title, WhatsApp, Email) is now hardcoded into the \"Output Template\" to ensure it appears in every\n  email automatically.\n  3. Strict Template Adherence: By defining the Output Template as a structural requirement, the AI is more likely to provide the data in a format that your\n  Gmail - Create Draft tool can easily parse."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -3280,
+        -992
+      ],
+      "id": "6b4ee64e-bca4-4d5a-8f29-ce15e08ce420",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2992,
+        -432
+      ],
+      "id": "dfafc74a-03af-4206-99e7-7ba29b7a3c53",
+      "name": "Embeddings Google Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7kqV85HqvyM8U5l4",
+          "name": "Google Gemini(PaLM) Api account 9"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search the personal knowledge base, including profile data, FAQ, SOP, pricing logic, service descriptions, past reply templates, business rules, and communication guidelines. Use this to retrieve relevant context before making decisions or generating responses.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "ragsystemmach",
+          "mode": "list",
+          "cachedResultName": "ragsystemmach"
+        },
+        "topK": 5,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        -3072,
+        -640
+      ],
+      "id": "76a2a0b5-1118-4835-aebb-ae3a65f4cc7c",
+      "name": "Pinecone Vector Store1",
+      "credentials": {
+        "pineconeApi": {
+          "id": "wImJojuLFgEA9tXJ",
+          "name": "Md JAhID"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.threadId }}",
+        "tableName": "Jahidoo",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -3200,
+        -640
+      ],
+      "id": "cec76758-07c9-45cd-9886-76e7485cd764",
+      "name": "Postgres Chat Memory2",
+      "credentials": {
+        "postgres": {
+          "id": "awjfCAlXqIMFsBRE",
+          "name": "Md Jahid Hosen"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n  \"title\": \"EmailDetailsExtractor\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"subject_line\": {\n      \"type\": \"string\",\n      \"description\": \"The subject line of the email, extracted exactly from the text. Example: 'Meeting Confirmed: June 15th at 4:00 PM'\"\n    },\n    \"email_body\": {\n      \"type\": \"string\",\n      \"description\": \"The complete body text of the email, starting from the greeting (e.g., 'Dear...') all the way to the sign-off.\"\n    },\n    \"threadId\": {\n      \"type\": \"string\",\n      \"description\": \"The unique thread ID if available, otherwise return an empty string or null.\",\n      \"default\": \"\"\n    }\n  },\n  \"required\": [\"subject_line\", \"email_body\"]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -2736,
+        -1392
+      ],
+      "id": "e63b2b93-cd36-485c-ab9c-a1ad77a3deb8",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Catagroy').item.json.From }}",
+        "subject": "={{ $json.output.subject_line }}",
+        "emailType": "text",
+        "message": "={{ $json.output.email_body }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -2576,
+        -1616
+      ],
+      "id": "f590747d-4055-4da0-9dd4-31bda7f6be3b",
+      "name": "Reply email",
+      "webhookId": "a1bb6105-2862-44d3-bbc7-c9c53f45d3f8",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "VMeLLujhB38WFtQf",
+          "name": "Gmail account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        -2928,
+        368
+      ],
+      "id": "84786751-6d34-44a9-98da-8ca70b3a6638",
+      "name": "Create a draft in Gmail1",
+      "webhookId": "25e102e6-8897-4f8f-8ddd-695d84313975",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0LbdzuXdPZa2u8TT",
+          "name": "Md Jahid Hosen"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        -2784,
+        -640
+      ],
+      "id": "a3cf48fb-283a-467c-8c70-72cac1dbe56c",
+      "name": "Create a draft in Gmail",
+      "webhookId": "25e102e6-8897-4f8f-8ddd-695d84313975",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0LbdzuXdPZa2u8TT",
+          "name": "Md Jahid Hosen"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2656,
+        -1184
+      ],
+      "id": "136b1430-584f-4137-813c-e82dde65215c",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Ipksd7k8nVgJoY8j",
+          "name": "for me"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "id": "ad447f9e-67a4-41c1-a5d3-dc0b420b6c4a",
+      "name": "Daily at 10 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -3600,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "azamamohammad89@gmail.com",
+          "mode": "list",
+          "cachedResultName": "azamamohammad89@gmail.com"
+        },
+        "returnAll": true,
+        "timeMin": "={{ $today.toISO() }}",
+        "timeMax": "={{ $today.plus({ days: 1 }).toISO() }}",
+        "options": {
+          "orderBy": "startTime"
+        }
+      },
+      "id": "f7b4945c-b7ae-4b4f-940d-7e4def280e9f",
+      "name": "Fetch Today's Meetings",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        -3376,
+        688
+      ],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "DUydkVaYUAgENYHh",
+          "name": "Md jahid Hosen"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "name",
+              "name": "name",
+              "value": "={{ $json.summary }}",
+              "type": "string"
+            },
+            {
+              "id": "description",
+              "name": "description",
+              "value": "={{ $json.description || \"No description\" }}",
+              "type": "string"
+            },
+            {
+              "id": "startTime",
+              "name": "startTime",
+              "value": "={{ $json.start.dateTime }}",
+              "type": "string"
+            },
+            {
+              "id": "endTime",
+              "name": "endTime",
+              "value": "={{ $json.end.dateTime }}",
+              "type": "string"
+            },
+            {
+              "id": "attendees",
+              "name": "attendees",
+              "value": "={{ $json.attendees ? $json.attendees.map(a => a.email + \" (\" + (a.displayName || \"No name\") + \")\").join(\", \") : \"No attendees\" }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "952aef60-aac6-4166-805f-a0c947aca4cb",
+      "name": "Format Meeting Details",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2928,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "6238085785",
+        "text": "=📅 *Meeting Details*\n\n*Name:* {{ $json.name }}\n*Start:* {{ $json.startTime }}\n*End:* {{ $json.endTime }}\n*Description:* {{ $json.description }}\n*Attendees:* {{ $json.attendees }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "5aba48bb-1f9b-4389-a04f-e094f97da5cd",
+      "name": "Send to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2704,
+        688
+      ],
+      "webhookId": "7515fea6-1883-4ae2-a3b7-5fa2373aa4cf",
+      "credentials": {
+        "telegramApi": {
+          "id": "LFCGhEZAkF904zjt",
+          "name": "Md Jahid Hosen"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.start.dateTime }}",
+              "rightValue": "={{ $today.toISO() }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "afterOrEquals"
+              },
+              "id": "5db0a5dc-8d38-40f5-8c9d-bd85c31f0f2b"
+            },
+            {
+              "leftValue": "={{ $json.start.dateTime }}",
+              "rightValue": "={{ $today.plus({ days: 1 }).toISO() }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "before"
+              },
+              "id": "0b818db4-5444-4b06-811c-b2f9d6e2dd62"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ba9be164-2c44-4a00-b085-047a7a701326",
+      "name": "Filter Today Only2",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -3152,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "e5f25242-e483-4e9c-86dd-58c8d97eba03",
+      "name": "Check Every Minute1",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -3600,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "azamamohammad89@gmail.com",
+          "mode": "list",
+          "cachedResultName": "azamamohammad89@gmail.com"
+        },
+        "returnAll": true,
+        "timeMin": "={{ $now.toISO() }}",
+        "timeMax": "={{ $now.plus({ minutes: 31 }).toISO() }}",
+        "options": {}
+      },
+      "id": "ae85a20c-43e4-466c-9d94-b79cb910d8c3",
+      "name": "Get Upcoming Events1",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        -3376,
+        912
+      ],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "DUydkVaYUAgENYHh",
+          "name": "Md jahid Hosen"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.shouldSend }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "id": "e4397ab8-bc04-45fe-bc66-a2f3de1a2f7f"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "caf26a9c-9f1a-4ec1-9a49-795be82de5a9",
+      "name": "Only Send If Time Matches1",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -2928,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "6238085785",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "09891553-d933-40a5-96ff-542286699a7f",
+      "name": "Send Reminder1",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2704,
+        912
+      ],
+      "webhookId": "14693fd2-5c67-45f0-bf58-b9fc2c52892d",
+      "credentials": {
+        "telegramApi": {
+          "id": "LFCGhEZAkF904zjt",
+          "name": "Md Jahid Hosen"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const event = $input.item.json;\nconst startTime = new Date(event.start.dateTime);\nconst now = new Date();\nconst diffMinutes = Math.floor((startTime - now) / 1000 / 60);\n\n// Only send reminder if exactly 30 minutes before (within 1-minute window)\nif (diffMinutes >= 29 && diffMinutes <= 30) {\n  const timeStr = startTime.toLocaleTimeString('en-US', { \n    hour: '2-digit', \n    minute: '2-digit',\n    hour12: true \n  });\n  \n  let message = '⏰ *Meeting Reminder*\\n\\n';\n  message += `Your meeting \"${event.summary || 'Untitled Event'}\" starts in 30 minutes!\\n\\n`;\n  message += `🕐 Time: ${timeStr}\\n`;\n  \n  if (event.description) {\n    message += `📝 ${event.description}`;\n  }\n  \n  return { json: { shouldSend: true, message } };\n}\n\nreturn { json: { shouldSend: false } };"
+      },
+      "id": "066b7dab-4a54-4ab0-b777-286765906938",
+      "name": "Check If 30 Min Before3",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3152,
+        912
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "3268bda3-3910-4f9b-9f60-696b6bcb70b2",
+      "name": "On Error",
+      "type": "n8n-nodes-base.errorTrigger",
+      "position": [
+        -3600,
+        1136
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "message",
+              "value": "=⚠️ Workflow `{{$json[\"workflow\"][\"name\"]}}` failed to run! [execution]({{ $json.execution.url }}) "
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3eda27ad-0a5e-4fc9-a590-42bfedd41795",
+      "name": "Set message",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -3376,
+        1136
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "chatId": "6238085785",
+        "text": "=Please cheek you are erro as sone as possiable.\nBEST TEAM\nBOT EMAIL",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "f963ee62-e663-4382-915e-0c1c166fba66",
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -3152,
+        1136
+      ],
+      "typeVersion": 1.1,
+      "webhookId": "4fc3728d-b369-47fd-b973-bd3b83d21189",
+      "credentials": {
+        "telegramApi": {
+          "id": "LFCGhEZAkF904zjt",
+          "name": "Md Jahid Hosen"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Catagroy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Catagroy": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [],
+        [],
+        [],
+        []
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crate meeting": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crate meeting1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        []
+      ]
+    },
+    "Pinecone Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Reply email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a draft in Gmail1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Create a draft in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily at 10 AM": {
+      "main": [
+        [
+          {
+            "node": "Fetch Today's Meetings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Today's Meetings": {
+      "main": [
+        [
+          {
+            "node": "Filter Today Only2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Meeting Details": {
+      "main": [
+        [
+          {
+            "node": "Send to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Today Only2": {
+      "main": [
+        [
+          {
+            "node": "Format Meeting Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Every Minute1": {
+      "main": [
+        [
+          {
+            "node": "Get Upcoming Events1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Upcoming Events1": {
+      "main": [
+        [
+          {
+            "node": "Check If 30 Min Before3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Only Send If Time Matches1": {
+      "main": [
+        [
+          {
+            "node": "Send Reminder1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If 30 Min Before3": {
+      "main": [
+        [
+          {
+            "node": "Only Send If Time Matches1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On Error": {
+      "main": [
+        [
+          {
+            "node": "Set message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set message": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Dhaka",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "22f04c23-4822-42c2-9872-6e37c8b28bdf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "78e247640ed028f1e4d071771bf82d0148bef5c00c52f5f7f92531cd4b85df65"
+  },
+  "nodeGroups": [],
+  "id": "pitwwNkXDTwRpArE",
+  "tags": []
+}
